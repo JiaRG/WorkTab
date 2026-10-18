@@ -55,15 +55,17 @@ public static class AchtungPatches
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instr)
         {
             var codeInstructions = instr.ToList();
+            var typeByName = AccessTools.Method(typeof(AccessTools), nameof(AccessTools.TypeByName), new[] { typeof(string) });
             for (var i = 0; i < codeInstructions.Count - 1; i++)
             {
                 var instruction = codeInstructions[i];
-                if (instruction.opcode == OpCodes.Ldstr && instruction.operand.ToString().Equals("WorkTab.PawnColumnDef_WorkGiver"))
+                if (instruction.opcode == OpCodes.Ldstr && Equals(instruction.operand, "WorkTab.PawnColumnDef_WorkGiver") &&
+                    codeInstructions[i + 1].Calls(typeByName))
                 {
                     codeInstructions[i + 1].operand = AccessTools.Method(typeof(DynamicWorkTypesAddWorkTypeDef), nameof(ReturnNull));
                 }
-                yield return instruction;
             }
+            return codeInstructions;
         }
     }
 }
